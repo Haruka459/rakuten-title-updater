@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ToDo アプリ",
-  description: "Next.js で作るシンプルな ToDo アプリ",
+  title: "ショップページ カード編集",
+  description: "上段・下段の画像と商品説明をカード単位で編集できるツール",
 };
 
 export default function RootLayout({
