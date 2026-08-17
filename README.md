@@ -1,36 +1,103 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 楽天市場 売上200%目標対策ツール
 
-## Getting Started
+楽天市場の店舗運営者向けに、「売上を200%にする」という漠然とした目標を、
+指標ごとの必要改善率 → 具体施策 → 月次マイルストーン → 進捗管理、まで分解して
+落とし込むためのツールです。
 
-First, run the development server:
+中核にあるのは売上の3分解です。
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+売上 = アクセス数 × 転換率(CVR) × 客単価
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+売上2.0倍は、3指標の改善率の**積**が2.0を超えれば達成できます。
+たとえば アクセス1.4倍 × 転換率1.2倍 × 客単価1.2倍 = 2.016倍 です。
+本ツールはこの分解を軸に、どの指標をどれだけ上げる必要があるかを逆算します。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 追加費用がかからない設計
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+このツールは**利用料が一切かかりません**。以下を設計の絶対条件としています。
 
-## Learn More
+| 項目 | 方針 |
+| --- | --- |
+| 外部API | 一切呼びません（楽天API・生成AI・解析SaaSすべて不使用） |
+| サーバー / データベース | 持ちません |
+| データ保存 | ブラウザの `localStorage` のみ。**データが外部に送信されることはありません** |
+| 追加パッケージ | ありません（グラフも手書きのSVG） |
+| 楽天の有料オプション | 前提にしていません（CSV一括編集オプションが無くても全機能が使えます） |
 
-To learn more about Next.js, take a look at the following resources:
+データの投入は「手入力」と「CSV取込」の2経路だけで、通信は発生しません。
+商品名の改善案生成も**規則ベース**で、生成AIは使っていません。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+データはブラウザ内にのみ保存されるため、ブラウザのデータを消すと失われます。
+設定画面から定期的にJSONバックアップを取ることをおすすめします。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 画面
 
-## Deploy on Vercel
+| ルート | 画面 | できること |
+| --- | --- | --- |
+| `/` | ダッシュボード | 現状KPIの入力、目標売上の逆算、達成率、月次ロードマップ、アラート要約 |
+| `/simulator` | KPIシミュレーター | 3指標の改善倍率をスライダーで動かし、売上倍率をその場で確認 |
+| `/products` | 商品パフォーマンス | CSV取込、売上上位商品、新商品抽出、低評価レビューのアラート |
+| `/titles` | 商品名最適化 | 楽天SEOの観点で商品名を採点し、改善点を指摘 |
+| `/actions` | 施策プランナー | 施策マスタから選定、優先度スコア、進捗管理 |
+| `/calendar` | 年間イベント対策 | 楽天イベントのカレンダーと準備チェックリスト |
+| `/settings` | データ管理 | JSONバックアップの書き出し／読み込み、全削除 |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 逆算の4パターン
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+目標倍率 M に対して、以下の配分で必要値を算出します。
+必要転換率が100%を超えるパターンは「実現不可能」として明示します。
+
+| パターン | 配分 |
+| --- | --- |
+| アクセス集中型 | アクセス M 倍のみ |
+| バランス型 | 3指標それぞれ M^(1/3) 倍 |
+| 転換率・客単価型 | 転換率・客単価それぞれ √M 倍 |
+| 現実配分型 | アクセス √M 倍、転換率・客単価それぞれ M^(1/4) 倍 |
+
+### 商品名の採点基準
+
+楽天市場の商品名の上限である **255バイト（全角127文字相当）** を軸に、
+キーワードの使用有無・出現位置・反復、装飾記号の量、断定表現（「最安値」「日本一」など）
+といった観点で減点し、0〜100点で採点します。各指摘には改善のヒントが付きます。
+
+## CSVの取り込み
+
+商品パフォーマンス画面で、以下のヘッダを持つCSVを読み込めます。
+**列の順序は問いません**（ヘッダ名で照合します）。見つからない列は0で埋めます。
+
+```
+商品管理番号, 商品名, 価格, 売上, 販売個数, アクセス数, レビュー数, レビュー平均, 登録日, 前期売上
+```
+
+楽天RMSからダウンロードしたCSVは Shift_JIS のことが多いため、
+画面上でエンコーディング（UTF-8 / Shift_JIS）を切り替えられます。
+
+## 開発
+
+```bash
+npm install
+npm run dev      # http://localhost:3000
+npm run build
+npm run lint
+```
+
+### 計算ロジックのテスト
+
+売上逆算・商品名採点・CSVパースなどの計算ロジックは、依存パッケージを増やさないよう
+自前のテストランナーで検証しています。
+
+```bash
+node tools/run-tests.mjs                # 単体テスト
+tsc -p tools/tsconfig.check.json        # ロジック層の型チェック
+```
+
+## 設計資料
+
+詳細な仕様は [`docs/PLAN.md`](docs/PLAN.md) を参照してください。
+
+## 注意
+
+楽天市場のイベント開催時期は年によって変動します。
+本ツールのカレンダーは目安であり、実際の開催日はRMSのお知らせで必ずご確認ください。
