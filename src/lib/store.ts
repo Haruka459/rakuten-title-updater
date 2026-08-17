@@ -1,6 +1,6 @@
-// localStorage 汎用ストア。src/lib/todoStore.ts と同じパターン
-// （module-level state + listeners Set + useSyncExternalStore 用の
-// subscribe/getSnapshot/getServerSnapshot）を createStore<T>() で汎用化したもの。
+// localStorage 汎用ストア。module-level state + listeners Set と、
+// useSyncExternalStore 用の subscribe/getSnapshot/getServerSnapshot を
+// createStore<T>() で汎用化したもの。
 
 export type Store<T> = {
   subscribe: (listener: () => void) => () => void;

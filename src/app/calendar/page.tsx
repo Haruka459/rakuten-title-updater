@@ -1,0 +1,9 @@
+import CalendarPage from "@/components/calendar/CalendarPage";
+
+export default function Calendar() {
+  return (
+    <main className="flex-1 px-4 py-8 sm:px-6 lg:px-8">
+      <CalendarPage />
+    </main>
+  );
+}
