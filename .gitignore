@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+/tools/dist/
 
 # next.js
 /.next/
@@ -39,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 純ロジック単体テストのビルド出力（tools/run-tests.mjs が生成）
+/tools/dist

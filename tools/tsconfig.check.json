@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noEmit": true,
+    "ignoreDeprecations": "6.0",
+    "skipLibCheck": true,
+    "lib": ["ES2020", "DOM"],
+    "baseUrl": "..",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": [
+    "../src/types/rakuten.ts",
+    "../src/lib/format.ts",
+    "../src/lib/store.ts",
+    "../src/lib/kpi.ts",
+    "../src/lib/titleScore.ts",
+    "../src/lib/csv.ts",
+    "../src/lib/alerts.ts",
+    "../src/lib/actionMaster.ts",
+    "../src/lib/eventCalendar.ts"
+  ]
+}
