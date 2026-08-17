@@ -22,6 +22,7 @@
     "../src/lib/csv.ts",
     "../src/lib/alerts.ts",
     "../src/lib/actionMaster.ts",
-    "../src/lib/eventCalendar.ts"
+    "../src/lib/eventCalendar.ts",
+    "../src/lib/appStores.ts"
   ]
 }
