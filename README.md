@@ -67,6 +67,19 @@ npm run rank -- --titles titles.txt
 出力される Markdown には、車種ランキング表、車種別の型式ランキング、
 そして集計に使ったタイトル一覧が入ります。
 
+### タイトルだけ手早く集める（ブラウザのコンソール）
+
+Node を用意せずにタイトルだけ集めたい場合は `scripts/collect-titles-in-browser.js` を使います。
+
+1. 楽天の検索結果ページを開く
+2. 開発者ツールの Console タブを開く（Windows: F12 / Mac: Cmd+Option+I）
+3. ファイルの中身をまるごと貼り付けて Enter
+
+PR（広告）を除いたタイトルが最大100件、クリップボードにコピーされます。
+そのまま `titles.txt` に保存して `npm run rank -- --titles titles.txt` に渡せます。
+
+ページ送りの数や件数は、ファイル冒頭の `CONFIG` で変えられます。
+
 ### 仕組みと注意点
 
 - 商品の取り出しは、ページに埋め込まれた JSON を優先し、失敗したら DOM 解析に落とします。
