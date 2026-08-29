@@ -34,3 +34,98 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## 楽天検索タイトルの車種／型式ランキング
+
+`scripts/rakuten-car-ranking.mjs` は、楽天市場の検索結果から商品タイトルを集めて
+「よく使われている車種名ランキング」と「車種ごとの型式ランキング」を作る CLI です。
+PR（広告）枠は既定で除外します。
+
+```bash
+# 検索ページから直接集計する（要ネットワーク）
+npm run rank -- --keyword "車　カスタム" --limit 100 --top 50
+
+# 保存済みの検索結果 HTML から集計する（オフライン）
+npm run rank -- --html page1.html page2.html page3.html
+
+# タイトルを1行1件で書いたテキストから集計する（オフライン）
+npm run rank -- --titles titles.txt
+```
+
+主なオプション:
+
+| オプション | 意味 |
+| --- | --- |
+| `--keyword` | 検索キーワード（既定 `車　カスタム`） |
+| `--limit N` | 集計する商品数。PR 除外・重複除去のあとの件数（既定 100） |
+| `--top N` | 車種ランキングの表示件数（既定 50） |
+| `--include-pr` | PR 枠も集計に含める |
+| `--out-md PATH` | Markdown レポートの出力先（既定 `reports/<keyword>.md`） |
+| `--out-json PATH` | JSON の出力先 |
+| `--save-html DIR` | 取得した HTML を保存する |
+
+出力される Markdown には、車種ランキング表、車種別の型式ランキング、
+そして集計に使ったタイトル一覧が入ります。
+
+### タイトルだけ手早く集める（ブラウザのコンソール）
+
+Node を用意せずにタイトルだけ集めたい場合は `scripts/collect-titles-in-browser.js` を使います。
+
+1. 楽天の検索結果ページを開く
+2. 開発者ツールの Console タブを開く（Windows: F12 / Mac: Cmd+Option+I）
+3. ファイルの中身をまるごと貼り付けて Enter
+
+PR（広告）を除いたタイトルが最大100件、クリップボードにコピーされます。
+そのまま `titles.txt` に保存して `npm run rank -- --titles titles.txt` に渡せます。
+
+ページ送りの数や件数は、ファイル冒頭の `CONFIG` で変えられます。
+
+### スマホだけでランキングまで出す（ブックマークレット）
+
+パソコンを使わず、スマホの中だけで集計まで終わらせられます。
+スマホのブラウザには開発者コンソールが無いので、ブックマークレットを使います。
+
+```bash
+npm run build:bookmarklets   # scripts/rank-bookmarklet.txt を生成
+```
+
+生成された `javascript:` で始まる文字列をブックマークの URL 欄に貼って保存し、
+楽天の検索結果ページを開いた状態でそのブックマークを開きます。
+タイトルの収集から集計までその場で走り、車種名ランキングと車種ごとの型式が画面に出ます。
+「結果をコピー」でレポート全文がクリップボードに入ります。
+
+- iOS Safari: 適当なページをブックマーク → 編集 → URL を貼り付けたものに差し替え
+- Android Chrome: 同様にブックマークを作り、アドレスバーにブックマーク名を入力して候補をタップ
+
+アドレスバーに直接貼っても動きません。ブラウザが `javascript:` を取り除くためです。
+
+ランキングは要らずタイトルだけ欲しい場合は `scripts/collect-titles-bookmarklet.txt` を使ってください。
+
+| ファイル | 中身 |
+| --- | --- |
+| `scripts/collect-and-rank-mobile.js` | 集計まで行うブックマークレットの元コード（テンプレート） |
+| `scripts/build-mobile-ranking.mjs` | 辞書を埋め込んで `javascript:` を生成する |
+| `scripts/rank-bookmarklet.txt` | 生成物。これをブックマークに貼る |
+| `scripts/lib/mobile-logic.generated.mjs` | 判定ロジックだけを切り出した自動生成モジュール（テスト用） |
+
+辞書はテンプレートに直接書かず `scripts/lib/car-dictionary.mjs` から埋め込まれるので、
+辞書を直したら `npm run build:bookmarklets` で作り直してください。
+`npm run test:extract` は、ブックマークレット版の判定結果が Node 版と一致することも検証します。
+
+### 仕組みと注意点
+
+- 商品の取り出しは、ページに埋め込まれた JSON を優先し、失敗したら DOM 解析に落とします。
+  どちらを使ったかはレポートの「抽出方法」欄に出ます。1 件も取れない場合はエラーになるので、
+  `--save-html` で HTML を保存して構造を確認してください。
+- 車種名と型式の辞書は `scripts/lib/car-dictionary.mjs` にあります。取りこぼしがあれば
+  ここに追記してください。`notPartOf` は「ドアミラー」の中の「ミラ」のような
+  誤検出を防ぐためのものです。
+- 辞書に無い型式は「辞書外の型式候補（推定）」として別枠に出ます。そのまま鵜呑みにせず確認してください。
+- Node の `fetch` は既定でプロキシ環境変数を読みません。プロキシ配下では
+  `NODE_USE_ENV_PROXY=1 npm run rank` のように実行してください。
+
+判定ロジックのテスト:
+
+```bash
+npm run test:extract
+```

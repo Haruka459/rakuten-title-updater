@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "rank": "node scripts/rakuten-car-ranking.mjs",
+    "test:extract": "node --test scripts/lib/extract.test.mjs scripts/lib/mobile-logic.test.mjs",
+    "build:bookmarklets": "node scripts/build-bookmarklet.mjs && node scripts/build-mobile-ranking.mjs"
   },
   "dependencies": {
     "next": "16.2.10",
