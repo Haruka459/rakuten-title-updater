@@ -80,22 +80,37 @@ PR（広告）を除いたタイトルが最大100件、クリップボードに
 
 ページ送りの数や件数は、ファイル冒頭の `CONFIG` で変えられます。
 
-### スマホだけで集める（ブックマークレット）
+### スマホだけでランキングまで出す（ブックマークレット）
 
+パソコンを使わず、スマホの中だけで集計まで終わらせられます。
 スマホのブラウザには開発者コンソールが無いので、ブックマークレットを使います。
 
 ```bash
-node scripts/build-bookmarklet.mjs   # scripts/collect-titles-bookmarklet.txt を生成
+npm run build:bookmarklets   # scripts/rank-bookmarklet.txt を生成
 ```
 
-生成された `javascript:` で始まる文字列を、ブックマークの URL 欄に貼り付けて保存し、
+生成された `javascript:` で始まる文字列をブックマークの URL 欄に貼って保存し、
 楽天の検索結果ページを開いた状態でそのブックマークを開きます。
-PR を除いたタイトルがページ上に重ねて表示され、「コピー」ボタンでクリップボードに入ります。
+タイトルの収集から集計までその場で走り、車種名ランキングと車種ごとの型式が画面に出ます。
+「結果をコピー」でレポート全文がクリップボードに入ります。
 
-- iOS Safari: 適当なページをブックマーク → ブックマークを編集 → URL を貼り付けたものに差し替え
+- iOS Safari: 適当なページをブックマーク → 編集 → URL を貼り付けたものに差し替え
 - Android Chrome: 同様にブックマークを作り、アドレスバーにブックマーク名を入力して候補をタップ
 
-元コードは `scripts/collect-titles-mobile.js` です。ページ送りの数や件数はファイル冒頭で変えられます。
+アドレスバーに直接貼っても動きません。ブラウザが `javascript:` を取り除くためです。
+
+ランキングは要らずタイトルだけ欲しい場合は `scripts/collect-titles-bookmarklet.txt` を使ってください。
+
+| ファイル | 中身 |
+| --- | --- |
+| `scripts/collect-and-rank-mobile.js` | 集計まで行うブックマークレットの元コード（テンプレート） |
+| `scripts/build-mobile-ranking.mjs` | 辞書を埋め込んで `javascript:` を生成する |
+| `scripts/rank-bookmarklet.txt` | 生成物。これをブックマークに貼る |
+| `scripts/lib/mobile-logic.generated.mjs` | 判定ロジックだけを切り出した自動生成モジュール（テスト用） |
+
+辞書はテンプレートに直接書かず `scripts/lib/car-dictionary.mjs` から埋め込まれるので、
+辞書を直したら `npm run build:bookmarklets` で作り直してください。
+`npm run test:extract` は、ブックマークレット版の判定結果が Node 版と一致することも検証します。
 
 ### 仕組みと注意点
 
