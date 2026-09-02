@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useStore } from "@/lib/useStore";
 import { productsStore } from "@/lib/appStores";
 import { generateAlerts, shopAverageCvr } from "@/lib/alerts";
 import { toCsv } from "@/lib/csv";
-import { formatNumber, formatPercent, formatYen } from "@/lib/format";
+import { formatDate, formatNumber, formatPercent, formatYen } from "@/lib/format";
 import Card from "@/components/ui/Card";
 import StatTile from "@/components/ui/StatTile";
 import BarChart from "@/components/charts/BarChart";
@@ -58,14 +58,24 @@ export default function ProductsPage() {
     [products],
   );
 
+  // レンダー中に Date.now() を呼ぶとサーバーとブラウザで結果がずれて
+  // ハイドレーション不整合になるため、マウント後に現在時刻を取得する。
+  const [now, setNow] = useState<number | null>(null);
+
+  useEffect(() => {
+    setNow(Date.now());
+  }, []);
+
   const newProducts = useMemo(
     () =>
-      products.filter((p) => {
-        if (p.registeredAt <= 0) return false;
-        const days = (Date.now() - p.registeredAt) / MS_PER_DAY;
-        return days >= 0 && days <= NEW_PRODUCT_DAYS;
-      }),
-    [products],
+      now === null
+        ? []
+        : products.filter((p) => {
+            if (p.registeredAt <= 0) return false;
+            const days = (now - p.registeredAt) / MS_PER_DAY;
+            return days >= 0 && days <= NEW_PRODUCT_DAYS;
+          }),
+    [products, now],
   );
 
   const handleExport = () => {
@@ -135,7 +145,11 @@ export default function ProductsPage() {
           <AlertsList alerts={alerts} />
 
           <Card title="新商品" description={`登録から${NEW_PRODUCT_DAYS}日以内の商品`}>
-            {newProducts.length === 0 ? (
+            {now === null ? (
+              <p className="text-sm text-black/40 dark:text-white/40 py-4 text-center">
+                読み込み中...
+              </p>
+            ) : newProducts.length === 0 ? (
               <p className="text-sm text-black/40 dark:text-white/40 py-4 text-center">
                 該当する新商品はありません
               </p>
@@ -145,7 +159,7 @@ export default function ProductsPage() {
                   <li key={p.id} className="flex justify-between gap-2">
                     <span className="truncate">{p.name || p.itemNumber}</span>
                     <span className="text-[#52514e] dark:text-[#c3c2b7] shrink-0">
-                      {new Date(p.registeredAt).toLocaleDateString("ja-JP")} 登録
+                      {formatDate(p.registeredAt)} 登録
                     </span>
                   </li>
                 ))}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useStore } from "@/lib/useStore";
 import { actionsStore } from "@/lib/appStores";
 import { formatNumber, formatPercent } from "@/lib/format";
@@ -12,8 +12,14 @@ import type { ActionMasterItem } from "@/types/rakuten";
 
 export default function ActionsPage() {
   const actions = useStore(actionsStore);
-  // レンダー中に new Date() を直接呼ばないよう、初期化関数内で取得する
-  const [today] = useState(() => new Date().toISOString().slice(0, 10));
+  // useState の初期化関数はサーバー側のレンダリングでも実行されるため、
+  // ここで new Date() を呼ぶとサーバーとブラウザで日付がずれてハイドレーション不整合になる。
+  // 初期値は null にしておき、マウント後に今日の日付を設定する。
+  const [today, setToday] = useState<string | null>(null);
+
+  useEffect(() => {
+    setToday(new Date().toISOString().slice(0, 10));
+  }, []);
 
   const addedMasterIds = useMemo(
     () => new Set(actions.map((a) => a.masterId).filter((id): id is string => id !== null)),

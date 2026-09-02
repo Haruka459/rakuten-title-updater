@@ -3,7 +3,13 @@
 import { useMemo, useState } from "react";
 import type { Product } from "@/types/rakuten";
 import { productsStore } from "@/lib/appStores";
-import { formatNumber, formatPercent, formatYen, parseNumericInput } from "@/lib/format";
+import {
+  formatDate,
+  formatNumber,
+  formatPercent,
+  formatYen,
+  parseNumericInput,
+} from "@/lib/format";
 import Card from "@/components/ui/Card";
 
 type SortKey = "sales" | "sessions" | "cvr" | "reviewAverage";
@@ -220,7 +226,7 @@ export default function ProductTable({ products }: { products: Product[] }) {
                       {p.reviewCount}件（{p.reviewAverage.toFixed(1)}）
                     </td>
                     <td className="py-2 pr-3">
-                      {p.registeredAt > 0 ? new Date(p.registeredAt).toLocaleDateString("ja-JP") : "-"}
+                      {formatDate(p.registeredAt)}
                     </td>
                     <td className="py-2 pr-3">{formatYen(p.prevSales)}</td>
                     <td className="py-2">

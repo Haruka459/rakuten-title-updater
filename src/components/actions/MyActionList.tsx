@@ -20,7 +20,7 @@ function priorityOf(item: ActionItem): number {
 
 type Props = {
   items: ActionItem[];
-  today: string; // "YYYY-MM-DD"
+  today: string | null; // "YYYY-MM-DD"。マウント前は null（期限超過の判定を行わない）
 };
 
 export default function MyActionList({ items, today }: Props) {
@@ -48,7 +48,8 @@ export default function MyActionList({ items, today }: Props) {
     <Card title="自分の施策リスト" description="優先度スコアの高い順に表示しています。">
       <ul className="flex flex-col gap-3">
         {sorted.map((item) => {
-          const overdue = !!item.dueDate && item.dueDate < today && item.status !== "done";
+          const overdue =
+            today !== null && !!item.dueDate && item.dueDate < today && item.status !== "done";
           return (
             <li
               key={item.id}

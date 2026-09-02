@@ -38,3 +38,13 @@ export function parseNumericInput(s: string): number {
   const n = Number(cleaned);
   return Number.isFinite(n) ? n : 0;
 }
+
+// epoch ms を "YYYY-MM-DD" に整形する。
+// toLocaleDateString はサーバー(UTC)とブラウザ(JST)で結果がずれて
+// ハイドレーション不整合を起こすため、UTC基準で決定的に整形する。
+export function formatDate(ts: number): string {
+  if (!Number.isFinite(ts) || ts <= 0) return "-";
+  const d = new Date(ts);
+  if (Number.isNaN(d.getTime())) return "-";
+  return d.toISOString().slice(0, 10);
+}

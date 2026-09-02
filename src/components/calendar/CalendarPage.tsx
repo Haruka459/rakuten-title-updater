@@ -1,16 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import EventChecklist from "@/components/calendar/EventChecklist";
 import { EVENT_CALENDAR_DISCLAIMER, eventCalendar, eventsForMonth } from "@/lib/eventCalendar";
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
 export default function CalendarPage() {
-  // レンダー中に new Date() を直接呼ばないよう、初期化関数内で取得する
-  const [selectedMonth, setSelectedMonth] = useState(() => new Date().getMonth() + 1);
+  // useState の初期化関数はサーバー側のレンダリングでも実行されるため、
+  // ここで new Date() を呼ぶとサーバーとブラウザで月がずれてハイドレーション不整合になる。
+  // 初期値は null にしておき、マウント後に今月を設定する。
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
 
-  const monthlyEvents = eventsForMonth(selectedMonth);
+  useEffect(() => {
+    setSelectedMonth(new Date().getMonth() + 1);
+  }, []);
+
+  const monthlyEvents = selectedMonth === null ? [] : eventsForMonth(selectedMonth);
 
   return (
     <div className="w-full max-w-4xl mx-auto flex flex-col gap-8">
@@ -38,7 +44,11 @@ export default function CalendarPage() {
           ))}
         </div>
 
-        {monthlyEvents.length === 0 ? (
+        {selectedMonth === null ? (
+          <p className="text-sm text-black/40 dark:text-white/40 py-6 text-center">
+            読み込み中...
+          </p>
+        ) : monthlyEvents.length === 0 ? (
           <p className="text-sm text-black/40 dark:text-white/40 py-6 text-center">
             この月に予定されているイベントはありません。
           </p>
